@@ -16,7 +16,7 @@ Follow the help instructions to get an API token:
 
 	Usage: deletefiles.py [OPTIONS] TOKEN
 
-	  Download and delete up to 1000 largest slack files.  Only downloads files
+	  Download and delete up to the 1000 largest slack files.  Only downloads files
 	  explicitly uploaded to Slack. Does not download files downloaded from
 	  e.g., dropbox links.
 

@@ -53,7 +53,7 @@ def delete_file(token, file_id):
 @click.option("-filetypes", type=str, default="", help="Comma delimited list of file extensions to delete e.g., pdf,docx")
 def main(token, ndays, minmb, filetypes):
   """
-  Download and delete up to 1000 largest slack files. 
+  Download and delete up to the 1000 largest slack files. 
   Only downloads files explicitly uploaded to Slack.
   Does not download files downloaded from e.g., dropbox links.
 
