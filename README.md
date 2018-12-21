@@ -18,7 +18,7 @@ You need to put the ChromeDriver binary in your PATH.  Go here and download it:
 
 ## Help
 
-Follow the help instructions to get an API token:
+Follow the help instructions.  Get [an API token first](https://api.slack.com/custom-integrations/legacy-tokens)
 
     python deletefiles.py --help
 
