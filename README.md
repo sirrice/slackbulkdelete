@@ -3,11 +3,20 @@
 This script finds attachments in your slack workspace, downloads attachments that were explicitly uploaded to slack to your local directory (i.e., not dropbox links auto downloaded by slack), and deletes the files from slack.
 It will warn you before actually deleting files.
 
+The main script will create a file `./urls` that contains private urls for each attachment file that it will download.  It uses [download.py](./download.py) to open a Chrome browser to actually download the files into `./downloads/`.  It then uses the Slack web api to delete those files.
+
 ## Setup
 
 Install
 
     pip install requests click
+    pip install selenium
+
+You need to put the ChromeDriver binary in your PATH.  Go here and download it:
+
+    https://sites.google.com/a/chromium.org/chromedriver/downloads 
+
+## Help
 
 Follow the help instructions to get an API token:
 
@@ -42,6 +51,7 @@ Delete files at least 10MB in size that are zip or pdf files
 
     python deletefiles.py <token> -minmb=10 -filetypes=zip,pdf
 
+Just list files but don't download and don't delete
 
-
+    python deletefiles.py <token> -minmb=10 -filetypes=zip,pdf -skipdl -skiprm
 

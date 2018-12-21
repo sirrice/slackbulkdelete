@@ -21,19 +21,13 @@ def list_files(token, ts_to):
 def download_all(token, files):
   os.system("mkdir -p ./downloads")
   print "Downloading files to ./downloads"
-  willdelete = []
-  for i, f in enumerate(files):
-    outname = "./downloads/" + f['name']
-    if 'url_private_download' in f:
-      data = requests.get(f['url_private_download']).content
-      with file(outname, "wb") as out:
-        out.write(data)
-      print "", "download", f['name']
-    else:
-      print "", "    skip", f['name']
+  urls = [f['url_private_download'] for f in files if 'url_private_download' in f]
+  with file("urls", "w") as urlfile:
+    urlfile.write("\n".join(urls))
 
-    willdelete.append(f)
-  return willdelete
+  print "wrote %s urls" % len(urls)
+  os.system("python download.py urls")
+  raw_input('press "enter" when all files are downloaded')
   
 
 def delete_file(token, file_id):
@@ -51,7 +45,9 @@ def delete_file(token, file_id):
 @click.option("-ndays", type=int, default=30, help="Delete files up to n days old.")
 @click.option("-minmb", type=float, default=0.5, help="Delete files larger than this.")
 @click.option("-filetypes", type=str, default="", help="Comma delimited list of file extensions to delete e.g., pdf,docx")
-def main(token, ndays, minmb, filetypes):
+@click.option("-skipdl", is_flag=True, help="Skip downloading files.")
+@click.option("-skiprm", is_flag=True, help="Skip deleting files.")
+def main(token, ndays, minmb, filetypes, skipdl, skiprm):
   """
   Download and delete up to the 1000 largest slack files. 
   Only downloads files explicitly uploaded to Slack.
@@ -76,14 +72,21 @@ def main(token, ndays, minmb, filetypes):
   # files = filter(lambda f: f['name'], files)
   # files = filter(lambda f: f['filetype'], files)
 
-  willdelete = download_all(token, files)
-  for f in willdelete:
-    print 'will rm:', f['size'], '\t', ('url_private_download' in f), '\t', f['name']
-  raw_input('Press enter to delete.  Ctl-c to quit.')
-  for i, f in enumerate(willdelete):
-    fid = f['id']
-    status = delete_file(token, fid)
-    print 'deleted', i, 'of', len(willdelete), fid, status
+  if not files:
+    print "No files to delete.  Done"
+    return
+
+  if not skipdl:
+    download_all(token, files)
+
+  if not skiprm:
+    for f in files:
+      print 'will rm:', f['size'], '\t', ('url_private_download' in f), '\t', f['name']
+    raw_input('Press enter to delete.  Ctl-c to quit.')
+    for i, f in enumerate(files):
+      fid = f['id']
+      status = delete_file(token, fid)
+      print 'deleted', i, 'of', len(files), fid, status
 
 
 if __name__ == "__main__":
