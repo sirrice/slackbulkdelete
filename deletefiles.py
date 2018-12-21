@@ -50,7 +50,8 @@ def delete_file(token, file_id):
 @click.argument("token")
 @click.option("-ndays", type=int, default=30, help="Delete files up to n days old.")
 @click.option("-minmb", type=float, default=0.5, help="Delete files larger than this.")
-def main(token, ndays, minmb):
+@click.option("-filetypes", type=str, default="", help="Comma delimited list of file extensions to delete e.g., pdf,docx")
+def main(token, ndays, minmb, filetypes):
   """
   Download and delete up to 1000 largest slack files. 
   Only downloads files explicitly uploaded to Slack.
@@ -65,6 +66,15 @@ def main(token, ndays, minmb):
   files = list_files(token, ts_to)
   files = filter(lambda f: f['size'] >= nbytes, files)
   files.sort(key=lambda f: f['size'], reverse=True)
+
+  filetypes = filetypes.split(",")
+  if filetypes:
+    func = lambda f: any(f['name'].endswith(ftype) for ftype in filetypes)
+    files = filter(func, files)
+
+  # edit the code here if you want to filter files based on file type or file name
+  # files = filter(lambda f: f['name'], files)
+  # files = filter(lambda f: f['filetype'], files)
 
   willdelete = download_all(token, files)
   for f in willdelete:
