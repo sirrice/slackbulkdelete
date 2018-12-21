@@ -17,7 +17,7 @@ def list_files(token, ts_to):
   params = {
     'token': token
     ,'ts_to': ts_to
-    ,'count': 1000
+    ,'count': 5000
   }
 
   response = requests.get(uri, params=params)
