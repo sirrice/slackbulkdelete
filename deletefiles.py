@@ -1,8 +1,13 @@
+import datetime
 import click
 import os
 import requests
 import time
 import json
+
+from os import system, getcwd
+from os.path import join
+from selenium import webdriver
 
 
 
@@ -19,16 +24,43 @@ def list_files(token, ts_to):
   return json.loads(response.text)['files']
 
 def download_all(token, files):
+  """
+  To run, you need:
+
+   1. The Google Chrome browser.
+
+   2. You need Selenium.
+
+       pip install selenium
+
+   3. You need to put the ChromeDriver binary in your PATH.
+
+       https://sites.google.com/a/chromium.org/chromedriver/downloads 
+
+  """
+
   os.system("mkdir -p ./downloads")
   print "Downloading files to ./downloads"
   urls = [f['url_private_download'] for f in files if 'url_private_download' in f]
-  with file("urls", "w") as urlfile:
-    urlfile.write("\n".join(urls))
+  if not urls:
+    return
 
-  print "wrote %s urls" % len(urls)
-  os.system("python download.py urls")
-  raw_input('press "enter" when all files are downloaded')
-  
+  co = webdriver.ChromeOptions()
+  co.add_experimental_option('prefs',
+    {
+        'download.default_directory': join(getcwd(), "downloads"),
+        'download.prompt_for_download': False,
+        'plugins.always_open_pdf_externally': True
+    })
+  browser = webdriver.Chrome(chrome_options=co)
+  browser.get(urls[0])
+  raw_input("Press 'return' when you have signed in to start download.")
+
+  for i, url in enumerate(urls[1:]):
+    browser.get(url)
+    print (i+2), "of", len(urls)
+  browser.quit()
+
 
 def delete_file(token, file_id):
   params = {
@@ -76,12 +108,17 @@ def main(token, ndays, minmb, filetypes, skipdl, skiprm):
     print "No files to delete.  Done"
     return
 
+  total_size = int(sum(f['size'] for f in files) / 100000) / 10.
+
+  print "I found %s MB from %d files (MBs, tstamp, will download, name):" % (total_size, len(files))
+  for f in files:
+    dt = datetime.datetime.utcfromtimestamp(f['timestamp']).strftime('%Y-%m-%d')
+    print '\t', (f['size'] / 100000) / 10., '\t', dt, '\t', ('url_private_download' in f), '\t', f['name']
+
   if not skipdl:
     download_all(token, files)
 
   if not skiprm:
-    for f in files:
-      print 'will rm:', f['size'], '\t', ('url_private_download' in f), '\t', f['name']
     raw_input('Press enter to delete.  Ctl-c to quit.')
     for i, f in enumerate(files):
       fid = f['id']
